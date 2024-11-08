@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 def wrap_circular_value(input_value):
     return (input_value + np.pi) % (2*np.pi) - np.pi
-
 
 class BicycleModel:
     xdim: int = 6
@@ -30,7 +30,7 @@ class BicycleModel:
 
         vx_dot = 1/tau * (u_v - vx_B)
         vy_dot = - Cy/(mass * vx_B) * vy_B - vx_B * omega + Cy/mass * u_steering
-        omega_dot = -L**2 * Cy/(2 * Iz * vx_B) * omega + L * Cy/mass * u_steering
+        omega_dot = -L**2 * Cy/(2 * Iz * vx_B) * omega + L * Cy/Iz * u_steering
     
         vx_B = vx_B + self.dt * vx_dot
         vy_B = vy_B + self.dt * vy_dot
@@ -88,7 +88,7 @@ def test_system():
     # Initial condition.
     state0 = np.array([0.0, 0.0, 0.0, 1.0, 0.0, 0.0])
 
-    action = np.array([1.0, -1.0])
+    action = np.array([1.0, 0.2])
     t = np.arange(0, 30, model.dt)
     states = np.zeros((len(t), model.xdim))
     states[0] = state0
@@ -96,7 +96,10 @@ def test_system():
         states[i] = model.dynamics(states[i-1], action)
 
     fig, ax = plot_states(states, "Bicycle Model Performance for u_v=1.0, u_steering=-1.0")
-    plt.savefig("system_plots/bicycle_model.pdf")
+    folder = "system_plots/"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    plt.savefig(folder + "bicycle_model.pdf")
     
     # Design a controller
     # Initial condition.
